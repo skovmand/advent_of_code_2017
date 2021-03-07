@@ -1,7 +1,7 @@
 use std::fs;
 
 fn main() {
-    let input = fs::read_to_string("input/day01.txt").expect("Unable to read file");
+    let input = fs::read_to_string("input/day_01.txt").expect("Unable to read file");
 
     let part_1_answer = inverse_capcha(input.clone());
     println!("The answer to D1P1 is {}", part_1_answer);
@@ -12,7 +12,7 @@ fn main() {
 
 /* Solver for D1P1 */
 pub fn inverse_capcha(input: String) -> u32 {
-    let number_vec: Vec<u32> = parse_input(&input);
+    let number_vec: Vec<u32> = parse_input(input);
     let number_vec_offset_one = offset_vec_by_one(&number_vec);
 
     number_vec
@@ -24,7 +24,7 @@ pub fn inverse_capcha(input: String) -> u32 {
 
 /* Solver for D1P2 */
 pub fn inverse_circular_capcha(input: String) -> u32 {
-    let number_vec: Vec<u32> = parse_input(&input);
+    let number_vec: Vec<u32> = parse_input(input);
 
     number_vec
         .iter()
@@ -56,7 +56,7 @@ fn offset_vec_by_one(original_vec: &Vec<u32>) -> Vec<u32> {
 }
 
 /* Create a vector of u32s from a string input */
-fn parse_input(string_input: &String) -> Vec<u32> {
+fn parse_input(string_input: String) -> Vec<u32> {
     string_input
         .split("")
         .filter(|c| c != &"")
