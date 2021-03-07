@@ -58,6 +58,7 @@ fn offset_vec_by_one(original_vec: &Vec<u32>) -> Vec<u32> {
 /* Create a vector of u32s from a string input */
 fn parse_input(string_input: String) -> Vec<u32> {
     string_input
+        .trim()
         .split("")
         .filter(|c| c != &"")
         .map(|c| c.parse::<u32>().unwrap())

@@ -54,7 +54,7 @@ fn find_divisible(dividend: u32, row: Vec<u32>) -> Option<(u32, u32)> {
 }
 
 fn parse_spreadsheet(spreadsheet_input: &String) -> Vec<Vec<u32>> {
-    let string_split_by_newline: Vec<&str> = spreadsheet_input.split("\n").collect();
+    let string_split_by_newline: Vec<&str> = spreadsheet_input.trim().split("\n").collect();
 
     string_split_by_newline
         .iter()
