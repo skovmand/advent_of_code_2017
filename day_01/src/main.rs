@@ -3,15 +3,15 @@ use std::fs;
 fn main() {
     let input = fs::read_to_string("input/day_01.txt").expect("Unable to read file");
 
-    let part_1_answer = inverse_capcha(input.clone());
+    let part_1_answer = inverse_capcha(&input);
     println!("The answer to D1P1 is {}", part_1_answer);
 
-    let part_2_answer = inverse_circular_capcha(input);
+    let part_2_answer = inverse_circular_capcha(&input);
     println!("The answer to D1P2 is {}", part_2_answer);
 }
 
 /* Solver for D1P1 */
-pub fn inverse_capcha(input: String) -> u32 {
+pub fn inverse_capcha(input: &String) -> u32 {
     let number_vec: Vec<u32> = parse_input(input);
     let number_vec_offset_one = offset_vec_by_one(&number_vec);
 
@@ -23,7 +23,7 @@ pub fn inverse_capcha(input: String) -> u32 {
 }
 
 /* Solver for D1P2 */
-pub fn inverse_circular_capcha(input: String) -> u32 {
+pub fn inverse_circular_capcha(input: &String) -> u32 {
     let number_vec: Vec<u32> = parse_input(input);
 
     number_vec
@@ -56,7 +56,7 @@ fn offset_vec_by_one(original_vec: &Vec<u32>) -> Vec<u32> {
 }
 
 /* Create a vector of u32s from a string input */
-fn parse_input(string_input: String) -> Vec<u32> {
+fn parse_input(string_input: &String) -> Vec<u32> {
     string_input
         .trim()
         .split("")
@@ -71,18 +71,18 @@ mod tests {
 
     #[test]
     fn p1_unit_tests() {
-        assert_eq!(inverse_capcha(String::from("1122")), 3);
-        assert_eq!(inverse_capcha(String::from("1111")), 4);
-        assert_eq!(inverse_capcha(String::from("1234")), 0);
-        assert_eq!(inverse_capcha(String::from("91212129")), 9);
+        assert_eq!(inverse_capcha(&String::from("1122")), 3);
+        assert_eq!(inverse_capcha(&String::from("1111")), 4);
+        assert_eq!(inverse_capcha(&String::from("1234")), 0);
+        assert_eq!(inverse_capcha(&String::from("91212129")), 9);
     }
 
     #[test]
     fn p2_unit_tests() {
-        assert_eq!(inverse_circular_capcha(String::from("1212")), 6);
-        assert_eq!(inverse_circular_capcha(String::from("1221")), 0);
-        assert_eq!(inverse_circular_capcha(String::from("123425")), 4);
-        assert_eq!(inverse_circular_capcha(String::from("123123")), 12);
-        assert_eq!(inverse_circular_capcha(String::from("12131415")), 4);
+        assert_eq!(inverse_circular_capcha(&String::from("1212")), 6);
+        assert_eq!(inverse_circular_capcha(&String::from("1221")), 0);
+        assert_eq!(inverse_circular_capcha(&String::from("123425")), 4);
+        assert_eq!(inverse_circular_capcha(&String::from("123123")), 12);
+        assert_eq!(inverse_circular_capcha(&String::from("12131415")), 4);
     }
 }
