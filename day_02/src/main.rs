@@ -1,8 +1,7 @@
-use std::fs;
+const PUZZLE_INPUT: &str = include_str!("../input/day_02.txt");
 
 fn main() {
-    let input = fs::read_to_string("input/day_02.txt").expect("Unable to read file");
-    let spreadsheet = parse_spreadsheet(input);
+    let spreadsheet = parse_spreadsheet(PUZZLE_INPUT);
 
     let part_1_answer = spreadsheet_checksum(&spreadsheet);
     println!("The answer to D2P1 is {}", part_1_answer);
@@ -50,7 +49,7 @@ fn find_divisible(dividend: u32, row: Vec<u32>) -> Option<(u32, u32)> {
     }
 }
 
-fn parse_spreadsheet(spreadsheet_input: String) -> Vec<Vec<u32>> {
+fn parse_spreadsheet(spreadsheet_input: &str) -> Vec<Vec<u32>> {
     spreadsheet_input
         .trim()
         .split("\n")
@@ -77,12 +76,17 @@ mod tests {
     fn spreadsheet_checksum_test() {
         let spreadsheet_input = "5 1 9 5\n\
                            7 5 3\n\
-                           2 4 6 8"
-            .to_string();
+                           2 4 6 8";
 
         let spreadsheet = parse_spreadsheet(spreadsheet_input);
 
         assert_eq!(spreadsheet_checksum(&spreadsheet), 18);
+    }
+
+    #[test]
+    fn solves_p1() {
+        let spreadsheet = parse_spreadsheet(PUZZLE_INPUT);
+        assert_eq!(spreadsheet_checksum(&spreadsheet), 32020);
     }
 
     #[test]
@@ -96,11 +100,16 @@ mod tests {
     fn spreadsheet_checksum_by_division_test() {
         let spreadsheet_input = "5 9 2 8\n\
                             9 4 7 3\n\
-                            3 8 6 5"
-            .to_string();
+                            3 8 6 5";
 
         let spreadsheet = parse_spreadsheet(spreadsheet_input);
 
         assert_eq!(spreadsheet_checksum_by_division(&spreadsheet), 9);
+    }
+
+    #[test]
+    fn solves_p2() {
+        let spreadsheet = parse_spreadsheet(PUZZLE_INPUT);
+        assert_eq!(spreadsheet_checksum_by_division(&spreadsheet), 236);
     }
 }
