@@ -1,18 +1,16 @@
-use std::fs;
+const PUZZLE_INPUT: &str = include_str!("../input/day_01.txt");
 
 fn main() {
-    let input = fs::read_to_string("input/day_01.txt").expect("Unable to read file");
-
-    let part_1_answer = inverse_capcha(&input);
+    let puzzle_input: Vec<u32> = parse_input(PUZZLE_INPUT);
+    let part_1_answer = inverse_capcha(&puzzle_input);
     println!("The answer to D1P1 is {}", part_1_answer);
 
-    let part_2_answer = inverse_circular_capcha(&input);
+    let part_2_answer = inverse_circular_capcha(&puzzle_input);
     println!("The answer to D1P2 is {}", part_2_answer);
 }
 
 /* Solver for D1P1 */
-pub fn inverse_capcha(input: &String) -> u32 {
-    let number_vec: Vec<u32> = parse_input(input);
+pub fn inverse_capcha(number_vec: &Vec<u32>) -> u32 {
     let number_vec_offset_one = offset_vec_by_one(&number_vec);
 
     number_vec
@@ -23,9 +21,7 @@ pub fn inverse_capcha(input: &String) -> u32 {
 }
 
 /* Solver for D1P2 */
-pub fn inverse_circular_capcha(input: &String) -> u32 {
-    let number_vec: Vec<u32> = parse_input(input);
-
+pub fn inverse_circular_capcha(number_vec: &Vec<u32>) -> u32 {
     number_vec
         .iter()
         .enumerate()
@@ -56,7 +52,7 @@ fn offset_vec_by_one(original_vec: &Vec<u32>) -> Vec<u32> {
 }
 
 /* Create a vector of u32s from a string input */
-fn parse_input(string_input: &String) -> Vec<u32> {
+fn parse_input(string_input: &str) -> Vec<u32> {
     string_input
         .chars()
         .filter_map(|c| c.to_digit(10))
@@ -69,18 +65,18 @@ mod tests {
 
     #[test]
     fn p1_unit_tests() {
-        assert_eq!(inverse_capcha(&String::from("1122")), 3);
-        assert_eq!(inverse_capcha(&String::from("1111")), 4);
-        assert_eq!(inverse_capcha(&String::from("1234")), 0);
-        assert_eq!(inverse_capcha(&String::from("91212129")), 9);
+        assert_eq!(inverse_capcha(&parse_input("1122")), 3);
+        assert_eq!(inverse_capcha(&parse_input("1111")), 4);
+        assert_eq!(inverse_capcha(&parse_input("1234")), 0);
+        assert_eq!(inverse_capcha(&parse_input("91212129")), 9);
     }
 
     #[test]
     fn p2_unit_tests() {
-        assert_eq!(inverse_circular_capcha(&String::from("1212")), 6);
-        assert_eq!(inverse_circular_capcha(&String::from("1221")), 0);
-        assert_eq!(inverse_circular_capcha(&String::from("123425")), 4);
-        assert_eq!(inverse_circular_capcha(&String::from("123123")), 12);
-        assert_eq!(inverse_circular_capcha(&String::from("12131415")), 4);
+        assert_eq!(inverse_circular_capcha(&parse_input("1212")), 6);
+        assert_eq!(inverse_circular_capcha(&parse_input("1221")), 0);
+        assert_eq!(inverse_circular_capcha(&parse_input("123425")), 4);
+        assert_eq!(inverse_circular_capcha(&parse_input("123123")), 12);
+        assert_eq!(inverse_circular_capcha(&parse_input("12131415")), 4);
     }
 }
