@@ -59,9 +59,8 @@ fn offset_vec_by_one(original_vec: &Vec<u32>) -> Vec<u32> {
 fn parse_input(string_input: &String) -> Vec<u32> {
     string_input
         .trim()
-        .split("")
-        .filter(|c| c != &"")
-        .map(|c| c.parse::<u32>().unwrap())
+        .chars()
+        .map(|c| c.to_string().parse::<u32>().unwrap())
         .collect::<Vec<u32>>()
 }
 
