@@ -65,18 +65,33 @@ mod tests {
 
     #[test]
     fn p1_unit_tests() {
-        assert_eq!(inverse_capcha(&parse_input("1122")), 3);
-        assert_eq!(inverse_capcha(&parse_input("1111")), 4);
-        assert_eq!(inverse_capcha(&parse_input("1234")), 0);
-        assert_eq!(inverse_capcha(&parse_input("91212129")), 9);
+        [("1122", 3), ("1111", 4), ("1234", 0), ("91212129", 9)]
+            .iter()
+            .for_each(|(input, expected)| {
+                let puzzle_input = parse_input(*input);
+                assert_eq!(inverse_capcha(&puzzle_input), *expected);
+            })
+    }
+
+    #[test]
+    fn solves_p1() {
+        let puzzle_input = parse_input(PUZZLE_INPUT);
+        assert_eq!(inverse_capcha(&puzzle_input), 997);
     }
 
     #[test]
     fn p2_unit_tests() {
-        assert_eq!(inverse_circular_capcha(&parse_input("1212")), 6);
-        assert_eq!(inverse_circular_capcha(&parse_input("1221")), 0);
-        assert_eq!(inverse_circular_capcha(&parse_input("123425")), 4);
-        assert_eq!(inverse_circular_capcha(&parse_input("123123")), 12);
-        assert_eq!(inverse_circular_capcha(&parse_input("12131415")), 4);
+        [("1212", 6), ("1221", 0), ("123425", 4), ("123123", 12), ("12131415", 4)]
+            .iter()
+            .for_each(|(input, expected)| {
+                let puzzle_input = parse_input(*input);
+                assert_eq!(inverse_circular_capcha(&puzzle_input), *expected);
+            })
+    }
+
+    #[test]
+    fn solves_p2() {
+        let puzzle_input = parse_input(PUZZLE_INPUT);
+        assert_eq!(inverse_circular_capcha(&puzzle_input), 1358);
     }
 }
