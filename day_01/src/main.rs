@@ -1,4 +1,4 @@
-const PUZZLE_INPUT: &str = include_str!("../input/day_01.txt");
+const PUZZLE_INPUT: &str = include_str!("../../puzzle_inputs/day_01.txt");
 
 fn main() {
     let puzzle_input: Vec<u32> = parse_input(PUZZLE_INPUT);

@@ -1,4 +1,4 @@
-const PUZZLE_INPUT: &str = include_str!("../input/day_02.txt");
+const PUZZLE_INPUT: &str = include_str!("../../puzzle_inputs/day_02.txt");
 
 fn main() {
     let spreadsheet = parse_spreadsheet(PUZZLE_INPUT);
