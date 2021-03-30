@@ -28,8 +28,7 @@ fn validate_no_same_words(password: &str) -> bool {
 
 // Validate: Are any two words anagrams?
 fn validate_no_anagrams(password: &str) -> bool {
-    let words: Vec<&str> = password.split(" ").collect();
-    let normalized_words = words.iter().map(|word| to_normalized_word(word));
+    let normalized_words: Vec<String> = password.split(" ").map(|word| to_normalized_word(word)).collect();
     let normalized_word_count = normalized_words.len();
     let set: HashSet<String> = HashSet::from_iter(normalized_words);
 
