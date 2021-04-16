@@ -1,4 +1,4 @@
-use std::collections::HashSet;
+use std::collections::HashMap;
 
 const PUZZLE_INPUT: &str = include_str!("../../puzzle_inputs/day_06.txt");
 
@@ -6,32 +6,35 @@ type MemoryBank = u32;
 
 fn main() {
     let memory_banks: Vec<MemoryBank> = parse_input(PUZZLE_INPUT);
-    let d1p1_answer = find_identical_redistribution_cycle(memory_banks);
+    let (d6p1_answer, d6p2_answer) = find_identical_redistribution_cycle(memory_banks);
 
-    println!("D6P1: Identical cycle is {}", d1p1_answer);
+    println!("D6P1: Identical cycle is {}", d6p1_answer);
+    println!("D6P2: Loop size is {}", d6p2_answer);
 }
 
 fn parse_input(input: &str) -> Vec<MemoryBank> {
     input.split_whitespace().map(|s| s.parse().unwrap()).collect()
 }
 
-fn find_identical_redistribution_cycle(mut memory_banks: Vec<MemoryBank>) -> usize {
-    let mut redistribution_cycle_count = 0;
-    let mut memory_bank_set: HashSet<Vec<u32>> = HashSet::new();
+// Returns the cycle count where a value repeats for the first time as well as the loop size
+fn find_identical_redistribution_cycle(mut memory_banks: Vec<MemoryBank>) -> (u32, u32) {
+    let mut redistribution_cycle_count: u32 = 0;
+    let mut memory_bank_map: HashMap<Vec<u32>, u32> = HashMap::new();
 
     loop {
         redistribution_cycle_count = redistribution_cycle_count + 1;
         let max_index = max_memory_bank_index(&memory_banks);
         memory_banks = redistribute(memory_banks.clone(), max_index);
 
-        if memory_bank_set.contains(&memory_banks) {
-            break;
-        } else {
-            memory_bank_set.insert(memory_banks.clone());
-        }
+        match memory_bank_map.get(&memory_banks) {
+            Some(_) => break,
+            None => memory_bank_map.insert(memory_banks.clone(), redistribution_cycle_count)
+        };
     }
 
-    redistribution_cycle_count
+    let first_occurence = memory_bank_map.get(&memory_banks).unwrap().to_owned();
+
+    (redistribution_cycle_count, redistribution_cycle_count - first_occurence)
 }
 
 fn max_memory_bank_index(memory_banks: &Vec<MemoryBank>) -> usize {
@@ -77,8 +80,8 @@ mod tests {
     }
 
     #[test]
-    fn test_d6p1_example() {
+    fn test_d6p1_and_2_example() {
         let memory_banks: Vec<MemoryBank> = vec![0, 2, 7, 0];
-        assert_eq!(find_identical_redistribution_cycle(memory_banks), 5);
+        assert_eq!(find_identical_redistribution_cycle(memory_banks), (5, 4));
     }
 }
