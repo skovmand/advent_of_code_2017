@@ -4,10 +4,11 @@ extern crate lazy_static;
 const PUZZLE_INPUT: &str = include_str!("../../puzzle_inputs/day_07.txt");
 
 use regex::Regex;
+use std::collections::HashMap;
 use std::collections::HashSet;
 
 fn main() {
-    let programs: Vec<Program> = parse_input(PUZZLE_INPUT);
+    let programs: HashMap<String, Program> = parse_input(PUZZLE_INPUT);
     let root_program = match find_root_program(programs) {
         Ok(program) => program,
         Err(reason) => panic!("Failed to find root program, {}", reason),
@@ -16,11 +17,11 @@ fn main() {
     println!("D7P1: Root program is {}", root_program);
 }
 
-fn find_root_program(programs: Vec<Program>) -> Result<String, String> {
-    let program_names: HashSet<String> = programs.iter().map(|p| p.name.clone()).collect();
+fn find_root_program(programs: HashMap<String, Program>) -> Result<String, String> {
+    let program_names: HashSet<String> = programs.values().map(|p| p.name.clone()).collect();
     let mut children_names: HashSet<String> = HashSet::new();
 
-    for program in programs {
+    for (_, program) in programs {
         if let Some(children) = program.children {
             for child in children {
                 children_names.insert(child);
@@ -39,12 +40,20 @@ fn find_root_program(programs: Vec<Program>) -> Result<String, String> {
     }
 }
 
-fn parse_input(puzzle_input: &str) -> Vec<Program> {
-    puzzle_input
+fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
+    let programs = puzzle_input
         .trim()
         .split("\n")
         .map(|input| Program::from(input))
-        .collect::<Vec<Program>>()
+        .collect::<Vec<Program>>();
+
+    let mut program_map: HashMap<String, Program> = HashMap::new();
+
+    for program in programs {
+        program_map.insert(program.name.clone(), program);
+    }
+
+    program_map
 }
 
 #[derive(Debug)]
