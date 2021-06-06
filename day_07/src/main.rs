@@ -14,11 +14,10 @@ fn main() {
         Err(reason) => panic!("Failed to find root program, {}", reason),
     };
 
-    println!("D7P1: Root program is {}", root_program);
+    println!("D7P1: Root program is {}", &root_program);
 
-    let children_weights = find_program_with_unbalanced_children(&programs).expect("Could not find unbalanced node");
-
-    println!("D7P2: Unbalanced children are: {:?}", children_weights);
+    let correct_weight = find_correct_weight_at_leaf(root_program, &programs);
+    println!("D7P2: Correct weight is {}", &correct_weight);
 }
 
 fn find_root_program(programs: &HashMap<String, Program>) -> Result<String, String> {
@@ -44,6 +43,31 @@ fn find_root_program(programs: &HashMap<String, Program>) -> Result<String, Stri
     }
 }
 
+fn find_correct_weight_at_leaf(root_node: String, programs: &HashMap<String, Program>) -> u32 {
+    let mut odd_value: u32 = 0;
+    let mut normal_value: u32 = 0;
+    let mut next_node = root_node;
+
+    while let Some(children) = programs.get(&next_node).unwrap().children.clone() {
+        let names_with_weights: Vec<(String, u32)> = children
+            .into_iter()
+            .map(|c| (c.clone(), total_weight(&c, &programs)))
+            .collect();
+        if let Some((name, odd_weight, normal_weight)) = find_odd_child_name(names_with_weights) {
+            odd_value = odd_weight;
+            normal_value = normal_weight;
+            next_node = name;
+        } else {
+            break;
+        }
+    }
+
+    let difference: i32 = (odd_value - normal_value) as i32;
+    let weight = programs.get(&next_node).unwrap().weight as i32;
+
+    (weight - difference) as u32
+}
+
 fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
     let programs = puzzle_input
         .trim()
@@ -60,32 +84,58 @@ fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
     program_map
 }
 
-fn find_program_with_unbalanced_children(programs: &HashMap<String, Program>) -> Option<Vec<u16>> {
-    // Get programs with children only:
-    for program in programs.values().cloned().filter(|p| p.children.is_some()) {
-        let children = program.children.clone().unwrap();
+// Calculate weight of node and all children. Not optimized.
+fn total_weight(name: &str, programs: &HashMap<String, Program>) -> u32 {
+    let program = programs.get(name).expect("Failed to find program");
+    let weight = program.weight;
 
-        let children_weights: Vec<u16> = children
-            .iter()
-            .map(|c| programs.get(c).expect("Child program not found"))
-            .map(|p| p.weight(&programs))
-            .collect();
-
-        let first_weight = children_weights[0];
-        let all_weights_same = children_weights.iter().all(|&w| w == first_weight);
-
-        if !all_weights_same {
-            return Some(children_weights);
+    match program.children.clone() {
+        None => weight,
+        Some(children) => {
+            let children_weight: u32 = children.iter().map(|c| total_weight(c, &programs)).sum();
+            weight + children_weight
         }
     }
+}
 
-    None
+fn find_odd_child_name(programs_with_weights: Vec<(String, u32)>) -> Option<(String, u32, u32)> {
+    let mut frequencies: HashMap<u32, u32> = HashMap::new();
+
+    // Count weight frequencies
+    for (_, weight) in programs_with_weights.clone() {
+        let counter = frequencies.entry(weight).or_insert(0);
+        *counter += 1;
+    }
+
+    match frequencies.len() {
+        1 => None,
+        2 => {
+            let (odd_weight, _) = frequencies
+                .clone()
+                .into_iter()
+                .find(|(_, count)| *count == 1)
+                .expect("Could not find one odd weight");
+
+            let (normal_weight, _) = frequencies
+                .into_iter()
+                .find(|(_, count)| *count != 1)
+                .expect("Could not find the normal weight");
+
+            let (name, _) = programs_with_weights
+                .into_iter()
+                .find(|(_, prog_weight)| odd_weight == *prog_weight)
+                .expect("Could not find program from weight");
+
+            Some((name, odd_weight, normal_weight))
+        }
+        _ => panic!("Unexpected weights"),
+    }
 }
 
 #[derive(Clone, Debug)]
 struct Program {
     name: String,
-    weight: u16,
+    weight: u32,
     children: Option<HashSet<String>>,
 }
 
@@ -102,7 +152,7 @@ impl From<&str> for Program {
             None => panic!("Name not matched in regex"),
         };
 
-        let weight: u16 = match captures.get(2) {
+        let weight: u32 = match captures.get(2) {
             Some(m) => m.as_str().parse().expect("Could not convert weight to integer"),
             None => panic!("Weight not matched in regex"),
         };
@@ -113,21 +163,6 @@ impl From<&str> for Program {
         };
 
         Program { name, weight, children }
-    }
-}
-
-impl Program {
-    fn weight(&self, programs: &HashMap<String, Program>) -> u16 {
-        let children_weights: u16 = match self.children.clone() {
-            None => 0,
-            Some(children) => children
-                .iter()
-                .map(|c| programs.get(c).expect("Child not present in programs!"))
-                .map(|p| p.weight)
-                .sum(),
-        };
-
-        self.weight + children_weights
     }
 }
 
@@ -161,23 +196,32 @@ mod tests {
     #[test]
     fn finds_program_weights() {
         let programs = parse_input(TEST_INPUT);
-
-        let ugml = programs.get("ugml").expect("Could not get program");
-        assert_eq!(ugml.weight(&programs), 251);
-
-        let program = programs.get("padx").expect("Could not get program");
-        assert_eq!(program.weight(&programs), 243);
-
-        let program = programs.get("fwft").expect("Could not get program");
-        assert_eq!(program.weight(&programs), 243);
+        assert_eq!(total_weight("ugml", &programs), 251);
+        assert_eq!(total_weight("padx", &programs), 243);
+        assert_eq!(total_weight("fwft", &programs), 243);
     }
 
     #[test]
-    fn finds_program_with_unbalanced_children() {
+    fn finds_normal_and_odd_program_weight() {
         let programs = parse_input(TEST_INPUT);
-        let children_weights: Vec<u16> =
-            find_program_with_unbalanced_children(&programs).expect("Found no unbalanced program");
 
-        assert_eq!(children_weights, vec![1,2,3]);
+        // Get the three children
+        let program: Program = programs.get("tknk").unwrap().to_owned();
+        let children: HashSet<String> = program.children.unwrap();
+        let children_with_weights: Vec<(String, u32)> = children
+            .iter()
+            .map(|c| (c.clone(), total_weight(c, &programs)))
+            .collect();
+
+        let odd_child: Option<(String, u32, u32)> = find_odd_child_name(children_with_weights);
+
+        assert!(odd_child.is_some());
+        assert_eq!(odd_child.unwrap(), (String::from("ugml"), 251, 243));
+    }
+
+    #[test]
+    fn finds_correct_weight_at_leaf() {
+        let programs = parse_input(TEST_INPUT);
+        assert_eq!(find_correct_weight_at_leaf(String::from("tknk"), &programs), 60);
     }
 }
