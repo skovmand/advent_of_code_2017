@@ -1,26 +1,29 @@
 #[macro_use]
 extern crate lazy_static;
 
+#[macro_use]
+extern crate anyhow;
+
 const PUZZLE_INPUT: &str = include_str!("../../puzzle_inputs/day_07.txt");
 
+use anyhow::Context;
 use regex::Regex;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
-fn main() {
+fn main() -> anyhow::Result<()> {
     let programs: HashMap<String, Program> = parse_input(PUZZLE_INPUT);
-    let root_program = match find_root_program(&programs) {
-        Ok(program) => program,
-        Err(reason) => panic!("Failed to find root program, {}", reason),
-    };
 
+    let root_program = find_root_program(&programs).context("Failed to find root program")?;
     println!("D7P1: Root program is {}", &root_program);
 
-    let correct_weight = find_correct_weight_at_leaf(root_program, &programs);
+    let correct_weight = find_correct_weight_at_leaf(root_program, &programs).context("Error calculating weight")?;
     println!("D7P2: Correct weight is {}", &correct_weight);
+
+    Ok(())
 }
 
-fn find_root_program(programs: &HashMap<String, Program>) -> Result<String, String> {
+fn find_root_program(programs: &HashMap<String, Program>) -> anyhow::Result<String> {
     let program_names: HashSet<String> = programs.values().map(|p| p.name.clone()).collect();
     let mut children_names: HashSet<String> = HashSet::new();
 
@@ -35,15 +38,15 @@ fn find_root_program(programs: &HashMap<String, Program>) -> Result<String, Stri
     let difference: Vec<String> = program_names.difference(&children_names).cloned().collect();
 
     if difference.len() > 1 {
-        Err(String::from("More than one root program found"))
+        Err(anyhow!("More than one root program found"))
     } else if difference.len() == 0 {
-        Err(String::from("No root program found"))
+        Err(anyhow!("No root program found"))
     } else {
         Ok(difference[0].clone())
     }
 }
 
-fn find_correct_weight_at_leaf(root_node: String, programs: &HashMap<String, Program>) -> u32 {
+fn find_correct_weight_at_leaf(root_node: String, programs: &HashMap<String, Program>) -> anyhow::Result<u32> {
     let mut odd_value: u32 = 0;
     let mut normal_value: u32 = 0;
     let mut next_node = root_node;
@@ -53,6 +56,7 @@ fn find_correct_weight_at_leaf(root_node: String, programs: &HashMap<String, Pro
             .into_iter()
             .map(|c| (c.clone(), total_weight(&c, &programs)))
             .collect();
+
         if let Some((name, odd_weight, normal_weight)) = find_odd_child_name(names_with_weights) {
             odd_value = odd_weight;
             normal_value = normal_weight;
@@ -64,8 +68,13 @@ fn find_correct_weight_at_leaf(root_node: String, programs: &HashMap<String, Pro
 
     let difference: i32 = (odd_value - normal_value) as i32;
     let weight = programs.get(&next_node).unwrap().weight as i32;
+    let result = weight - difference;
 
-    (weight - difference) as u32
+    if result > 0 {
+        Ok(result as u32)
+    } else {
+        Err(anyhow!("Result cannot be negative"))
+    }
 }
 
 fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
