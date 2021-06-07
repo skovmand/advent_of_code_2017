@@ -10,6 +10,7 @@ use anyhow::Context;
 use regex::Regex;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::convert::TryFrom;
 
 fn main() -> anyhow::Result<()> {
     let programs: HashMap<String, Program> = parse_input(PUZZLE_INPUT);
@@ -95,14 +96,7 @@ fn children_with_weights(children: HashSet<String>, programs: &HashMap<String, P
 }
 
 fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
-    let programs: Vec<Program> = puzzle_input.lines().map(Program::from).collect();
-    let mut program_map: HashMap<String, Program> = HashMap::new();
-
-    for program in programs {
-        program_map.insert(program.name.clone(), program);
-    }
-
-    program_map
+    puzzle_input.lines().map(Program::try_from).map(|p| p.unwrap()).map(|p| (p.name.clone(), p)).collect()
 }
 
 // Calculate weight of node and all children. Not optimized.
@@ -160,8 +154,10 @@ struct Program {
     children: Option<HashSet<String>>,
 }
 
-impl From<&str> for Program {
-    fn from(input: &str) -> Program {
+impl TryFrom<&str> for Program {
+    type Error = anyhow::Error;
+
+    fn try_from(input: &str) -> Result<Program, Self::Error> {
         lazy_static! {
             static ref SPLITTER: Regex = Regex::new(r"([a-z]+) \(([0-9]+)\)(?: -> )?(.+)?").unwrap();
         }
@@ -169,21 +165,27 @@ impl From<&str> for Program {
         let captures = SPLITTER.captures(input).unwrap();
 
         let name = match captures.get(1) {
-            Some(m) => m.as_str().to_owned(),
-            None => panic!("Name not matched in regex"),
-        };
+            Some(m) => Ok(m.as_str().to_owned()),
+            None => Err(anyhow!("Name not matched in regex")),
+        }?;
 
         let weight: u32 = match captures.get(2) {
-            Some(m) => m.as_str().parse().expect("Could not convert weight to integer"),
-            None => panic!("Weight not matched in regex"),
-        };
+            Some(m) => {
+                if let Ok(parsed_weight) = m.as_str().parse() {
+                    Ok(parsed_weight)
+                } else {
+                    Err(anyhow!("Could not parse weight {}", m.as_str()))
+                }
+            }
+            None => Err(anyhow!("Could not match weight in regex")),
+        }?;
 
         let children: Option<HashSet<String>> = match captures.get(3) {
             Some(m) => Some(m.as_str().split(", ").map(|x| x.to_owned()).collect()),
             None => None,
         };
 
-        Program { name, weight, children }
+        Ok(Program { name, weight, children })
     }
 }
 
