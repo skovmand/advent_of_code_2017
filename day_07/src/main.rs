@@ -70,8 +70,7 @@ fn find_correct_weight_at_leaf(root_node: String, programs: &HashMap<String, Pro
 
 fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
     let programs = puzzle_input
-        .trim()
-        .split("\n")
+        .lines()
         .map(|input| Program::from(input))
         .collect::<Vec<Program>>();
 
