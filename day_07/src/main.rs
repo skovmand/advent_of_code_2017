@@ -17,7 +17,8 @@ fn main() -> anyhow::Result<()> {
     let root_program = find_root_program(&programs).context("Failed to find root program")?;
     println!("D7P1: Root program is {}", &root_program);
 
-    let correct_weight = find_correct_weight_at_leaf(root_program, &programs).context("Error calculating weight")?;
+    let correct_weight =
+        find_correct_weight_at_leaf(root_program, &programs).context("Error correcting odd program weight")?;
     println!("D7P2: Correct weight is {}", &correct_weight);
 
     Ok(())
@@ -47,42 +48,54 @@ fn find_root_program(programs: &HashMap<String, Program>) -> anyhow::Result<Stri
 }
 
 fn find_correct_weight_at_leaf(root_node: String, programs: &HashMap<String, Program>) -> anyhow::Result<u32> {
-    let mut odd_value: u32 = 0;
-    let mut normal_value: u32 = 0;
-    let mut next_node = root_node;
+    // Get root node, find first odd child
+    let root_node = programs.get(&root_node).context("Could not get root node")?;
 
+    let children = match root_node.children.clone() {
+        None => Err(anyhow!("No children found for root node!")),
+        Some(children) => Ok(children),
+    }?;
+
+    let root_children_with_weights = children_with_weights(children, programs);
+
+    let (first_odd_child, mut odd_value, mut normal_value) = match find_odd_child(root_children_with_weights) {
+        None => Err(anyhow!("Did not find odd child at root disc")),
+        Some(result) => Ok(result),
+    }?;
+
+    // From here, follow the odd child and find the final odd child (which is the one to correct)
+    let mut next_node = first_odd_child;
     while let Some(children) = programs.get(&next_node).unwrap().children.clone() {
-        let names_with_weights: Vec<(String, u32)> = children
-            .into_iter()
-            .map(|c| (c.clone(), total_weight(&c, &programs)))
-            .collect();
-
-        if let Some((name, odd_weight, normal_weight)) = find_odd_child_name(names_with_weights) {
-            odd_value = odd_weight;
-            normal_value = normal_weight;
-            next_node = name;
-        } else {
-            break;
-        }
+        match find_odd_child(children_with_weights(children, programs)) {
+            None => break,
+            Some((name, odd_weight, normal_weight)) => {
+                odd_value = odd_weight;
+                normal_value = normal_weight;
+                next_node = name;
+            }
+        };
     }
 
-    let difference: i32 = (odd_value - normal_value) as i32;
+    let difference = (odd_value - normal_value) as i32;
     let weight = programs.get(&next_node).unwrap().weight as i32;
     let result = weight - difference;
 
     if result > 0 {
         Ok(result as u32)
     } else {
-        Err(anyhow!("Result cannot be negative"))
+        Err(anyhow!("The corrected weight cannot be negative"))
     }
 }
 
-fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
-    let programs = puzzle_input
-        .lines()
-        .map(|input| Program::from(input))
-        .collect::<Vec<Program>>();
+fn children_with_weights(children: HashSet<String>, programs: &HashMap<String, Program>) -> Vec<(String, u32)> {
+    children
+        .into_iter()
+        .map(|c| (c.clone(), total_weight(&c, &programs)))
+        .collect()
+}
 
+fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
+    let programs: Vec<Program> = puzzle_input.lines().map(Program::from).collect();
     let mut program_map: HashMap<String, Program> = HashMap::new();
 
     for program in programs {
@@ -106,7 +119,7 @@ fn total_weight(name: &str, programs: &HashMap<String, Program>) -> u32 {
     }
 }
 
-fn find_odd_child_name(programs_with_weights: Vec<(String, u32)>) -> Option<(String, u32, u32)> {
+fn find_odd_child(programs_with_weights: Vec<(String, u32)>) -> Option<(String, u32, u32)> {
     let mut frequencies: HashMap<u32, u32> = HashMap::new();
 
     // Count weight frequencies
@@ -221,7 +234,7 @@ mod tests {
             .map(|c| (c.clone(), total_weight(c, &programs)))
             .collect();
 
-        let odd_child: Option<(String, u32, u32)> = find_odd_child_name(children_with_weights);
+        let odd_child: Option<(String, u32, u32)> = find_odd_child(children_with_weights);
 
         assert!(odd_child.is_some());
         assert_eq!(odd_child.unwrap(), (String::from("ugml"), 251, 243));
@@ -230,6 +243,9 @@ mod tests {
     #[test]
     fn finds_correct_weight_at_leaf() {
         let programs = parse_input(TEST_INPUT);
-        assert_eq!(find_correct_weight_at_leaf(String::from("tknk"), &programs), 60);
+        let corrected_weight = find_correct_weight_at_leaf(String::from("tknk"), &programs);
+
+        assert!(corrected_weight.is_ok());
+        assert_eq!(corrected_weight.unwrap(), 60);
     }
 }
