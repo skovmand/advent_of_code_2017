@@ -13,7 +13,7 @@ use std::collections::HashSet;
 use std::convert::TryFrom;
 
 fn main() -> anyhow::Result<()> {
-    let programs: HashMap<String, Program> = parse_input(PUZZLE_INPUT);
+    let programs: HashMap<String, Program> = parse_input(PUZZLE_INPUT).context("Failed to parse input")?;
 
     let root_program = find_root_program(&programs).context("Failed to find root program")?;
     println!("D7P1: Root program is {}", &root_program);
@@ -95,9 +95,9 @@ fn children_with_weights(children: HashSet<String>, programs: &HashMap<String, P
         .collect()
 }
 
-// TODO: This function is fallible. Handle errors for the kicks!
-fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
-    puzzle_input.lines().map(Program::try_from).map(|p| p.unwrap()).map(|p| (p.name.clone(), p)).collect()
+fn parse_input(puzzle_input: &str) -> anyhow::Result<HashMap<String, Program>> {
+    let programs = puzzle_input.lines().map(Program::try_from).collect::<Result<Vec<Program>, _>>()?;
+    Ok(programs.iter().map(|p| (p.name.clone(), p.clone())).collect())
 }
 
 // Calculate weight of node and all children. Not optimized.
@@ -210,7 +210,7 @@ mod tests {
 
     #[test]
     fn finds_root_program() {
-        let programs = parse_input(TEST_INPUT);
+        let programs = parse_input(TEST_INPUT).unwrap();
         let root_program = find_root_program(&programs);
 
         assert!(root_program.is_ok());
@@ -219,7 +219,7 @@ mod tests {
 
     #[test]
     fn finds_program_weights() {
-        let programs = parse_input(TEST_INPUT);
+        let programs = parse_input(TEST_INPUT).unwrap();
         assert_eq!(total_weight("ugml", &programs), 251);
         assert_eq!(total_weight("padx", &programs), 243);
         assert_eq!(total_weight("fwft", &programs), 243);
@@ -227,7 +227,7 @@ mod tests {
 
     #[test]
     fn finds_normal_and_odd_program_weight() {
-        let programs = parse_input(TEST_INPUT);
+        let programs = parse_input(TEST_INPUT).unwrap();
 
         // Get the three children
         let program: Program = programs.get("tknk").unwrap().to_owned();
@@ -245,7 +245,7 @@ mod tests {
 
     #[test]
     fn finds_correct_weight_at_leaf() {
-        let programs = parse_input(TEST_INPUT);
+        let programs = parse_input(TEST_INPUT).unwrap();
         let corrected_weight = find_correct_weight_at_leaf(String::from("tknk"), &programs);
 
         assert!(corrected_weight.is_ok());
