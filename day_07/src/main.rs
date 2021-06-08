@@ -95,6 +95,7 @@ fn children_with_weights(children: HashSet<String>, programs: &HashMap<String, P
         .collect()
 }
 
+// TODO: This function is fallible. Handle errors for the kicks!
 fn parse_input(puzzle_input: &str) -> HashMap<String, Program> {
     puzzle_input.lines().map(Program::try_from).map(|p| p.unwrap()).map(|p| (p.name.clone(), p)).collect()
 }
