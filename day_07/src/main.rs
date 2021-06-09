@@ -36,10 +36,9 @@ fn find_root_program(programs: &HashMap<String, Program>) -> anyhow::Result<Stri
 
     let difference: Vec<String> = program_names.difference(&children_names).cloned().collect();
 
-    if difference.len() == 1 {
-        Ok(difference[0].clone())
-    } else {
-        Err(anyhow!("None or several root programs found"))
+    match difference.len() {
+        1 => Ok(difference[0].clone()),
+        _ => Err(anyhow!("None or several root programs found"))
     }
 }
 
