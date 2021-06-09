@@ -10,6 +10,7 @@ use anyhow::Context;
 use regex::Regex;
 use std::collections::HashMap;
 use std::collections::HashSet;
+use std::convert::identity;
 use std::convert::TryFrom;
 
 fn main() -> anyhow::Result<()> {
@@ -31,14 +32,14 @@ fn find_root_program(programs: &HashMap<String, Program>) -> anyhow::Result<Stri
         .values()
         .map(|p| p.children.clone())
         .flatten()
-        .flat_map(std::convert::identity)
+        .flat_map(identity)
         .collect();
 
     let difference: Vec<String> = program_names.difference(&children_names).cloned().collect();
 
     match difference.len() {
         1 => Ok(difference[0].clone()),
-        _ => Err(anyhow!("None or several root programs found"))
+        _ => Err(anyhow!("None or several root programs found")),
     }
 }
 
