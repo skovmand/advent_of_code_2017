@@ -10,7 +10,6 @@ use anyhow::Context;
 use regex::Regex;
 use std::collections::HashMap;
 use std::collections::HashSet;
-use std::convert::identity;
 use std::convert::TryFrom;
 
 fn main() -> anyhow::Result<()> {
@@ -32,7 +31,7 @@ fn find_root_program(programs: &HashMap<String, Program>) -> anyhow::Result<Stri
         .values()
         .map(|p| p.children.clone())
         .flatten()
-        .flat_map(identity)
+        .flatten()
         .collect();
 
     let difference: Vec<String> = program_names.difference(&children_names).cloned().collect();
@@ -182,10 +181,9 @@ impl TryFrom<&str> for Program {
             None => Err(anyhow!("Could not match weight in regex")),
         }?;
 
-        let children: Option<HashSet<String>> = match captures.get(3) {
-            Some(m) => Some(m.as_str().split(", ").map(|x| x.to_owned()).collect()),
-            None => None,
-        };
+        let children: Option<HashSet<String>> = captures
+            .get(3)
+            .map(|m| m.as_str().split(", ").map(|x| x.to_owned()).collect());
 
         Ok(Program { name, weight, children })
     }
