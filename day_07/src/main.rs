@@ -13,7 +13,7 @@ use std::collections::HashSet;
 use std::convert::TryFrom;
 
 fn main() -> anyhow::Result<()> {
-    let programs: HashMap<String, Program> = parse_input(PUZZLE_INPUT).context("Failed to parse input")?;
+    let programs = parse_input(PUZZLE_INPUT).context("Failed to parse input")?;
 
     let root_program = find_root_program(&programs).context("Failed to find root program")?;
     println!("D7P1: Root program is {}", &root_program);
@@ -27,24 +27,19 @@ fn main() -> anyhow::Result<()> {
 
 fn find_root_program(programs: &HashMap<String, Program>) -> anyhow::Result<String> {
     let program_names: HashSet<String> = programs.values().map(|p| p.name.clone()).collect();
-    let mut children_names: HashSet<String> = HashSet::new();
-
-    for (_, program) in programs {
-        if let Some(children) = &program.children {
-            for child in children {
-                children_names.insert(child.clone());
-            }
-        }
-    }
+    let children_names: HashSet<String> = programs
+        .values()
+        .map(|p| p.children.clone())
+        .flatten()
+        .flat_map(std::convert::identity)
+        .collect();
 
     let difference: Vec<String> = program_names.difference(&children_names).cloned().collect();
 
-    if difference.len() > 1 {
-        Err(anyhow!("More than one root program found"))
-    } else if difference.len() == 0 {
-        Err(anyhow!("No root program found"))
-    } else {
+    if difference.len() == 1 {
         Ok(difference[0].clone())
+    } else {
+        Err(anyhow!("None or several root programs found"))
     }
 }
 
@@ -96,7 +91,10 @@ fn children_with_weights(children: HashSet<String>, programs: &HashMap<String, P
 }
 
 fn parse_input(puzzle_input: &str) -> anyhow::Result<HashMap<String, Program>> {
-    let programs = puzzle_input.lines().map(Program::try_from).collect::<Result<Vec<Program>, _>>()?;
+    let programs = puzzle_input
+        .lines()
+        .map(Program::try_from)
+        .collect::<Result<Vec<Program>, _>>()?;
     Ok(programs.iter().map(|p| (p.name.clone(), p.clone())).collect())
 }
 
@@ -163,7 +161,10 @@ impl TryFrom<&str> for Program {
             static ref SPLITTER: Regex = Regex::new(r"([a-z]+) \(([0-9]+)\)(?: -> )?(.+)?").unwrap();
         }
 
-        let captures = SPLITTER.captures(input).unwrap();
+        let captures = match SPLITTER.captures(input) {
+            Some(captures) => Ok(captures),
+            None => Err(anyhow!("Failed to match regex groups in input")),
+        }?;
 
         let name = match captures.get(1) {
             Some(m) => Ok(m.as_str().to_owned()),
