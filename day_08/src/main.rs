@@ -12,10 +12,11 @@ use std::{collections::HashMap, convert::TryFrom};
 
 fn main() -> anyhow::Result<()> {
     let instructions = parse_input(PUZZLE_INPUT).context("Could not parse input")?;
-    let result = apply_instructions(instructions);
-    let max_value = maximum_value(&result).expect("No max value found");
+    let (registers, max_value) = apply_instructions(instructions);
+    let max_register_value = maximum_value(&registers).expect("No max value found");
 
-    println!("D8P1 result is {}", max_value);
+    println!("D8P1 result is {}", max_register_value);
+    println!("D8P2 result is {}", max_value);
 
     Ok(())
 }
@@ -29,16 +30,21 @@ fn parse_input(input: &str) -> anyhow::Result<Instructions> {
         .collect::<Result<Vec<Instruction>, _>>()
 }
 
-fn apply_instructions(instructions: Instructions) -> HashMap<String, i32> {
+fn apply_instructions(instructions: Instructions) -> (HashMap<String, i32>, i32) {
     let mut registers: HashMap<String, i32> = HashMap::new();
+    let mut highest_value = 0;
 
     for i in instructions {
         if condition_true(&i.condition, &registers) {
-            apply_instruction(&i, &mut registers);
+            let result_value = apply_instruction(&i, &mut registers);
+
+            if result_value > highest_value {
+                highest_value = result_value
+            };
         }
     }
 
-    registers
+    (registers, highest_value)
 }
 
 fn condition_true(c: &Condition, registers: &HashMap<String, i32>) -> bool {
@@ -54,7 +60,7 @@ fn condition_true(c: &Condition, registers: &HashMap<String, i32>) -> bool {
     }
 }
 
-fn apply_instruction(i: &Instruction, registers: &mut HashMap<String, i32>) {
+fn apply_instruction(i: &Instruction, registers: &mut HashMap<String, i32>) -> i32 {
     let value = registers.get(&i.target).or(Some(&0)).unwrap().to_owned();
 
     let updated_value = match i.operation {
@@ -63,6 +69,8 @@ fn apply_instruction(i: &Instruction, registers: &mut HashMap<String, i32>) {
     };
 
     registers.insert(i.target.clone(), updated_value);
+
+    updated_value
 }
 
 fn maximum_value(registers: &HashMap<String, i32>) -> Option<&i32> {
@@ -171,7 +179,7 @@ mod tests {
     use indoc::indoc;
 
     #[test]
-    fn part_1_test() {
+    fn unit_test() {
         let input = indoc! {"
             b inc 5 if a > 1
             a inc 1 if b < 5
@@ -180,10 +188,14 @@ mod tests {
         "};
 
         let parsed = parse_input(input).unwrap();
-        let registers = apply_instructions(parsed);
+        let (registers, highest_value) = apply_instructions(parsed);
         let max_value = maximum_value(&registers);
 
+        // Part 1
         assert!(max_value.is_some());
         assert_eq!(max_value.unwrap(), &1);
+
+        // Part 2
+        assert_eq!(highest_value, 10);
     }
 }
