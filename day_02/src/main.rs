@@ -11,17 +11,17 @@ fn main() {
 }
 
 /* D2P1 */
-pub fn spreadsheet_checksum(spreadsheet: &Vec<Vec<u32>>) -> u32 {
+pub fn spreadsheet_checksum(spreadsheet: &[Vec<u32>]) -> u32 {
     spreadsheet.iter().map(|line| row_checksum(line)).sum::<u32>()
 }
 
 /* D2P2 */
-pub fn spreadsheet_checksum_by_division(spreadsheet: &Vec<Vec<u32>>) -> u32 {
+pub fn spreadsheet_checksum_by_division(spreadsheet: &[Vec<u32>]) -> u32 {
     spreadsheet.iter().map(|line| row_checksum_division(line)).sum::<u32>()
 }
 
 /* Calculate the checksum of a single row using the first algorithm */
-fn row_checksum(row: &Vec<u32>) -> u32 {
+fn row_checksum(row: &[u32]) -> u32 {
     let minimum = row.iter().min().unwrap();
     let maximum = row.iter().max().unwrap();
 
@@ -43,16 +43,13 @@ fn row_checksum_division(row: &Vec<u32>) -> u32 {
 }
 
 fn find_divisible(dividend: u32, row: Vec<u32>) -> Option<(u32, u32)> {
-    match row.iter().find(|divisor| dividend % *divisor == 0) {
-        None => None,
-        Some(divisor) => Some((dividend, *divisor)),
-    }
+    row.iter().find(|divisor| dividend % *divisor == 0).map(|divisor| (dividend, *divisor))
 }
 
 fn parse_spreadsheet(spreadsheet_input: &str) -> Vec<Vec<u32>> {
     spreadsheet_input
         .trim()
-        .split("\n")
+        .split('\n')
         .map(|s| parse_row(s))
         .collect::<Vec<Vec<u32>>>()
 }
@@ -84,12 +81,6 @@ mod tests {
     }
 
     #[test]
-    fn solves_p1() {
-        let spreadsheet = parse_spreadsheet(PUZZLE_INPUT);
-        assert_eq!(spreadsheet_checksum(&spreadsheet), 32020);
-    }
-
-    #[test]
     fn row_checksum_division_test() {
         assert_eq!(row_checksum_division(&parse_row("5 9 2 8")), 4);
         assert_eq!(row_checksum_division(&parse_row("9 4 7 3")), 3);
@@ -108,8 +99,9 @@ mod tests {
     }
 
     #[test]
-    fn solves_p2() {
+    fn solves_d2() {
         let spreadsheet = parse_spreadsheet(PUZZLE_INPUT);
+        assert_eq!(spreadsheet_checksum(&spreadsheet), 32020);
         assert_eq!(spreadsheet_checksum_by_division(&spreadsheet), 236);
     }
 }
