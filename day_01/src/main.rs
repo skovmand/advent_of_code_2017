@@ -74,12 +74,6 @@ mod tests {
     }
 
     #[test]
-    fn solves_p1() {
-        let puzzle_input = parse_input(PUZZLE_INPUT);
-        assert_eq!(inverse_capcha(&puzzle_input), 997);
-    }
-
-    #[test]
     fn p2_unit_tests() {
         [("1212", 6), ("1221", 0), ("123425", 4), ("123123", 12), ("12131415", 4)]
             .iter()
@@ -90,8 +84,9 @@ mod tests {
     }
 
     #[test]
-    fn solves_p2() {
+    fn solves_d1() {
         let puzzle_input = parse_input(PUZZLE_INPUT);
+        assert_eq!(inverse_capcha(&puzzle_input), 997);
         assert_eq!(inverse_circular_capcha(&puzzle_input), 1358);
     }
 }
