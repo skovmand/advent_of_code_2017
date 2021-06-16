@@ -14,12 +14,12 @@ fn main() {
 }
 
 fn parse_input(string_input: &str) -> Vec<&str> {
-    string_input.trim().split("\n").collect()
+    string_input.trim().split('\n').collect()
 }
 
 // Validate: Are any two words in the password similar?
 fn validate_no_same_words(password: &str) -> bool {
-    let words: Vec<&str> = password.split(" ").collect();
+    let words: Vec<&str> = password.split(' ').collect();
     let word_count = words.len();
     let set: HashSet<&str> = HashSet::from_iter(words);
 
@@ -28,7 +28,7 @@ fn validate_no_same_words(password: &str) -> bool {
 
 // Validate: Are any two words anagrams?
 fn validate_no_anagrams(password: &str) -> bool {
-    let normalized_words: Vec<String> = password.split(" ").map(|word| to_normalized_word(word)).collect();
+    let normalized_words: Vec<String> = password.split(' ').map(|word| to_normalized_word(word)).collect();
     let normalized_word_count = normalized_words.len();
     let set: HashSet<String> = HashSet::from_iter(normalized_words);
 
@@ -39,7 +39,7 @@ fn validate_no_anagrams(password: &str) -> bool {
 // and sort them by char code, creating a way to identify anagrams
 fn to_normalized_word(word: &str) -> String {
     let mut chars: Vec<char> = word.chars().collect();
-    chars.sort();
+    chars.sort_unstable();
     chars.iter().collect::<String>()
 }
 
@@ -67,5 +67,16 @@ mod tests {
     fn test_to_normalized_word() {
         assert_eq!(to_normalized_word("zzffuuqqaa"), "aaffqquuzz");
         assert_eq!(to_normalized_word("mountaintop"), "aimnnoopttu");
+    }
+
+    #[test]
+    fn solves_d4() {
+        let passwords: Vec<&str> = parse_input(PUZZLE_INPUT);
+
+        let valid_passwords_p1 = passwords.iter().filter(|pw| validate_no_same_words(pw)).count();
+        assert_eq!(valid_passwords_p1, 455);
+
+        let valid_passwords_p2 = passwords.iter().filter(|pw| validate_no_anagrams(pw)).count();
+        assert_eq!(valid_passwords_p2, 186);
     }
 }
