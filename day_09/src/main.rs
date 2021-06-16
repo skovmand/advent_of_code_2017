@@ -14,19 +14,24 @@ fn calculate_score(input: &str) -> (u32, u32) {
     let mut stream = input.trim().chars();
 
     while let Some(c) = stream.next() {
-        match c {
-            '<' if !is_garbage => is_garbage = true,
-            '>' => is_garbage = false,
-            '{' if !is_garbage => {
-                level += 1;
-                score += level;
+        if is_garbage {
+            match c {
+                '>' => is_garbage = false,
+                '!' => {
+                    stream.next();
+                }
+                _ => garbage_chars += 1,
             }
-            '}' if !is_garbage => level -= 1,
-            '!' => {
-                stream.next();
+        } else {
+            match c {
+                '<' => is_garbage = true,
+                '{' => {
+                    level += 1;
+                    score += level;
+                }
+                '}' => level -= 1,
+                _ => {}
             }
-            _ if is_garbage => garbage_chars += 1,
-            _ => {}
         }
     }
 
@@ -58,5 +63,10 @@ mod tests {
         assert_eq!(calculate_score("<!!>").1, 0);
         assert_eq!(calculate_score("<!!!>>").1, 0);
         assert_eq!(calculate_score(r#"<{o"i!a,<{i<a>"#).1, 10);
+    }
+
+    #[test]
+    fn solves_d9() {
+        assert_eq!(calculate_score(PUZZLE_INPUT), (12396, 6346));
     }
 }
