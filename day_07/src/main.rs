@@ -250,4 +250,16 @@ mod tests {
         assert!(corrected_weight.is_ok());
         assert_eq!(corrected_weight.unwrap(), 60);
     }
+
+    #[test]
+    fn solves_d7() {
+        let programs = parse_input(PUZZLE_INPUT).unwrap();
+        let root_program = find_root_program(&programs).expect("Could not find root program");
+        assert_eq!(root_program, "eugwuhl");
+
+        let corrected_weight =
+            find_correct_weight_at_leaf(root_program, &programs).expect("Could not correct leaf weight");
+
+        assert_eq!(corrected_weight, 420);
+    }
 }
