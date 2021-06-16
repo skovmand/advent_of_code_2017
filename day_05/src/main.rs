@@ -14,18 +14,18 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Program {
-    input.trim().split("\n").map(|x| x.parse().unwrap()).collect()
+    input.trim().split('\n').map(|x| x.parse().unwrap()).collect()
 }
 
 fn execute_program(mut program: Program, offset_fn: &OffsetCalcFn) -> u32 {
     let mut pointer: usize = 0;
     let mut step: u32 = 0;
 
-    while pointer <= program.len() - 1 {
+    while pointer < program.len() {
         let offset = program[pointer];
         program[pointer] = offset_fn(&offset);
         pointer = calc_next_pointer(&pointer, &offset).unwrap();
-        step = step + 1;
+        step += 1;
     }
 
     step
@@ -69,5 +69,15 @@ mod tests {
     fn d5p2_example() {
         let program: Program = vec![0, 3, 0, 1, -3];
         assert_eq!(execute_program(program, &add_or_subtract_offset), 10);
+    }
+
+    #[test]
+    fn solves_d5() {
+        let program = parse_input(PUZZLE_INPUT);
+        let p1_answer = execute_program(program.clone(), &add_one_to_offset);
+        assert_eq!(p1_answer, 374269);
+
+        let p2_answer = execute_program(program, &add_or_subtract_offset);
+        assert_eq!(p2_answer, 27720699);
     }
 }
