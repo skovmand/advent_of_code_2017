@@ -11,14 +11,20 @@ use regex::Regex;
 use std::{collections::HashMap, convert::TryFrom};
 
 fn main() -> anyhow::Result<()> {
-    let instructions = parse_input(PUZZLE_INPUT).context("Could not parse input")?;
-    let (registers, max_value) = apply_instructions(instructions);
-    let max_register_value = maximum_value(&registers).expect("No max value found");
+    let (max_register_value, max_value) = calculate(PUZZLE_INPUT)?;
 
     println!("D8P1 result is {}", max_register_value);
     println!("D8P2 result is {}", max_value);
 
     Ok(())
+}
+
+fn calculate(input: &str) -> anyhow::Result<(i32, i32)> {
+    let instructions = parse_input(input).context("Could not parse input")?;
+    let (registers, max_value) = apply_instructions(instructions);
+    let max_register_value = maximum_value(&registers).ok_or_else(|| anyhow!("No max value found"))?;
+
+    Ok((max_register_value.to_owned(), max_value))
 }
 
 type Instructions = Vec<Instruction>;
@@ -187,15 +193,19 @@ mod tests {
             c inc -20 if c == 10
         "};
 
-        let parsed = parse_input(input).unwrap();
-        let (registers, highest_value) = apply_instructions(parsed);
-        let max_value = maximum_value(&registers);
+        let (max_value, max_register_value) = calculate(input).unwrap();
 
         // Part 1
-        assert!(max_value.is_some());
-        assert_eq!(max_value.unwrap(), &1);
+        assert_eq!(max_value, 1);
 
         // Part 2
-        assert_eq!(highest_value, 10);
+        assert_eq!(max_register_value, 10);
+    }
+
+    #[test]
+    fn solves_d8() {
+        let (max_value, max_register_value) = calculate(PUZZLE_INPUT).unwrap();
+        assert_eq!(max_value, 7296);
+        assert_eq!(max_register_value, 8186);
     }
 }
