@@ -22,13 +22,13 @@ fn find_identical_redistribution_cycle(mut memory_banks: Vec<MemoryBank>) -> (u3
     let mut memory_bank_map: HashMap<Vec<u32>, u32> = HashMap::new();
 
     loop {
-        redistribution_cycle_count = redistribution_cycle_count + 1;
+        redistribution_cycle_count += 1;
         let max_index = max_memory_bank_index(&memory_banks);
         memory_banks = redistribute(memory_banks.clone(), max_index);
 
         match memory_bank_map.get(&memory_banks) {
             Some(_) => break,
-            None => memory_bank_map.insert(memory_banks.clone(), redistribution_cycle_count)
+            None => memory_bank_map.insert(memory_banks.clone(), redistribution_cycle_count),
         };
     }
 
@@ -37,7 +37,7 @@ fn find_identical_redistribution_cycle(mut memory_banks: Vec<MemoryBank>) -> (u3
     (redistribution_cycle_count, redistribution_cycle_count - first_occurence)
 }
 
-fn max_memory_bank_index(memory_banks: &Vec<MemoryBank>) -> usize {
+fn max_memory_bank_index(memory_banks: &[MemoryBank]) -> usize {
     let max_element: &u32 = memory_banks.iter().max().unwrap();
 
     memory_banks.iter().position(|elem| elem == max_element).unwrap()
@@ -50,8 +50,8 @@ fn redistribute(mut memory_banks: Vec<MemoryBank>, mut mem_index: usize) -> Vec<
 
     while pool > 0 {
         mem_index = (mem_index + 1) % length;
-        memory_banks[mem_index] = memory_banks[mem_index] + 1;
-        pool = pool - 1;
+        memory_banks[mem_index] += 1;
+        pool -= 1;
     }
 
     memory_banks
@@ -83,5 +83,14 @@ mod tests {
     fn test_d6p1_and_2_example() {
         let memory_banks: Vec<MemoryBank> = vec![0, 2, 7, 0];
         assert_eq!(find_identical_redistribution_cycle(memory_banks), (5, 4));
+    }
+
+    #[test]
+    fn solves_d6() {
+        let memory_banks: Vec<MemoryBank> = parse_input(PUZZLE_INPUT);
+        let (d6p1_answer, d6p2_answer) = find_identical_redistribution_cycle(memory_banks);
+
+        assert_eq!(d6p1_answer, 7864);
+        assert_eq!(d6p2_answer, 1695);
     }
 }
