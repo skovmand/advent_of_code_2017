@@ -15,11 +15,10 @@ enum Direction {
 const PUZZLE_INPUT: u32 = 368_078;
 
 fn main() {
-    let (x, y): Point = find_memory_location_with_puzzle_input(PUZZLE_INPUT);
+    let distance = find_memory_location_with_puzzle_input(PUZZLE_INPUT);
     println!(
         "D3P1: The manhattan distance from access port to location with value {} is {}",
-        PUZZLE_INPUT,
-        x.abs() + y.abs()
+        PUZZLE_INPUT, distance
     );
 
     let (point, value) = find_first_value_exceeding_puzzle_input(PUZZLE_INPUT);
@@ -29,14 +28,16 @@ fn main() {
     );
 }
 
-fn find_memory_location_with_puzzle_input(puzzle_input: u32) -> Point {
+fn find_memory_location_with_puzzle_input(puzzle_input: u32) -> i32 {
     let memory = init_memory();
     let populated_memory = populate_memory(memory, puzzle_input, &add_one);
 
-    populated_memory
+    let point = populated_memory
         .iter()
         .find_map(|(&point, &value)| if value == puzzle_input { Some(point) } else { None })
-        .unwrap()
+        .unwrap();
+
+    point.0.abs() + point.1.abs()
 }
 
 fn find_first_value_exceeding_puzzle_input(puzzle_input: u32) -> (Point, u32) {
@@ -170,5 +171,14 @@ mod tests {
         memory.insert((-1, 1), 5);
 
         assert_eq!(adjacent_sum(&0, &(-1, 0), &memory), 10);
+    }
+
+    #[test]
+    fn solves_d3() {
+        let distance = find_memory_location_with_puzzle_input(PUZZLE_INPUT);
+        assert_eq!(distance, 371);
+
+        let (_, value) = find_first_value_exceeding_puzzle_input(PUZZLE_INPUT);
+        assert_eq!(value, 369601);
     }
 }
